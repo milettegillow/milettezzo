@@ -2,7 +2,6 @@ import type { APIRoute } from 'astro';
 
 // Handle GET requests - return 405 Method Not Allowed
 export const GET: APIRoute = () => {
-  console.log("CONTACT API HIT");
   return new Response(
     JSON.stringify({ error: 'Method not allowed. Use POST.' }),
     { 
@@ -24,10 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (honeypot) {
       return new Response(
         JSON.stringify({ success: true }), // Don't reveal it's spam
-        { 
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        { status: 200 }
       );
     }
 
@@ -60,7 +56,7 @@ export const POST: APIRoute = async ({ request }) => {
     const sanitizedMessage = message.trim().slice(0, 5000);
 
     // Get Resend API key from environment variable
-    const resendApiKey = process.env.RESEND_API_KEY;
+    const resendApiKey = import.meta.env.RESEND_API_KEY;
 
     if (!resendApiKey) {
       console.error('RESEND_API_KEY is not set');
