@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 
 // Handle GET requests - return 405 Method Not Allowed
 export const GET: APIRoute = () => {
+  console.log("CONTACT API HIT");
   return new Response(
     JSON.stringify({ error: 'Method not allowed. Use POST.' }),
     { 
