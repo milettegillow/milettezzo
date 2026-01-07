@@ -393,14 +393,14 @@ const { pageTitle, subtitle, intro, socialLinks, polaroidImages } = contactConte
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('contact-form') as HTMLFormElement;
-    const messageDiv = document.getElementById('form-message') as HTMLElement;
+    const form = document.getElementById('contact-form');
+    const messageDiv = document.getElementById('form-message');
 
     if (!form || !messageDiv) return;
 
-    const showMessage = (text: string, type: 'success' | 'error') => {
+    const showMessage = (text, type) => {
       messageDiv.textContent = text;
-      messageDiv.className = `form-message show ${type}`;
+      messageDiv.className = 'form-message show ' + type;
       messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
 
