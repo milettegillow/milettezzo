@@ -1,5 +1,16 @@
 import type { APIRoute } from 'astro';
 
+// Handle GET requests - return 405 Method Not Allowed
+export const GET: APIRoute = () => {
+  return new Response(
+    JSON.stringify({ error: 'Method not allowed. Use POST.' }),
+    { 
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
+};
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const data = await request.formData();
@@ -20,7 +31,10 @@ export const POST: APIRoute = async ({ request }) => {
     if (!name || !email || !message) {
       return new Response(
         JSON.stringify({ error: 'All fields are required' }),
-        { status: 400 }
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
 
@@ -29,7 +43,10 @@ export const POST: APIRoute = async ({ request }) => {
     if (!emailRegex.test(email)) {
       return new Response(
         JSON.stringify({ error: 'Invalid email address' }),
-        { status: 400 }
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
 
@@ -45,7 +62,10 @@ export const POST: APIRoute = async ({ request }) => {
       console.error('RESEND_API_KEY is not set');
       return new Response(
         JSON.stringify({ error: 'Email service not configured' }),
-        { status: 500 }
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
 
@@ -80,23 +100,37 @@ ${sanitizedMessage}
     });
 
     if (!emailResponse.ok) {
-      const errorData = await emailResponse.json();
+      let errorData;
+      try {
+        errorData = await emailResponse.json();
+      } catch {
+        errorData = { message: 'Unknown error' };
+      }
       console.error('Resend API error:', errorData);
       return new Response(
-        JSON.stringify({ error: 'Failed to send email' }),
-        { status: 500 }
+        JSON.stringify({ error: 'Failed to send email. Please try again later.' }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
 
     return new Response(
       JSON.stringify({ success: true }),
-      { status: 200 }
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   } catch (error) {
     console.error('Contact form error:', error);
     return new Response(
       JSON.stringify({ error: 'An unexpected error occurred' }),
-      { status: 500 }
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   }
 };
