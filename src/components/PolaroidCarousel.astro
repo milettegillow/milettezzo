@@ -1,0 +1,583 @@
+---
+/**
+ * PolaroidCarousel Component
+ * 
+ * A casual, un-curated carousel of behind-the-scenes images with polaroid styling.
+ * Features infinite loop scrolling similar to the digital page carousels.
+ * 
+ * Images are passed as a prop from the contact page data file.
+ * To add new BTS images, edit src/content/contact.ts
+ */
+
+interface Props {
+  images: Array<{
+    image: string;
+    caption?: string;
+  }>;
+}
+
+import { Image } from "astro:assets";
+import { getImageForPath } from "../utils/imageMap.ts";
+
+const { images } = Astro.props;
+const carouselId = 'polaroid-carousel';
+
+// Pre-process images to get optimized versions
+const imagesWithOptimized = await Promise.all(
+  images.map(async (item) => {
+    const optimizedImage = getImageForPath(item.image);
+    return {
+      ...item,
+      optimizedImage,
+      imagePath: item.image // Keep original as fallback
+    };
+  })
+);
+
+// Generate random but stable rotations for each image
+const rotations = imagesWithOptimized.map((_, i) => {
+  // Use index-based seed for consistent rotation per image
+  const seed = i * 7.3; // Arbitrary multiplier for variety
+  return (Math.sin(seed) * 8 - 4).toFixed(1); // Range: -4 to 4 degrees
+});
+
+---
+
+<div class="polaroid-carousel-wrapper" data-carousel-id={carouselId}>
+  <button 
+    type="button"
+    class="carousel-button carousel-button-left" 
+    aria-label="Scroll left"
+    data-direction="left"
+  >
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+  </button>
+  
+  <div class="carousel-container" tabindex="0" role="region" aria-label="Behind the scenes photos">
+    <div class="carousel-track" data-carousel-track>
+      {/* Clone images at the end for seamless looping */}
+      {imagesWithOptimized.map((item, index) => {
+        const rotation = rotations[index % rotations.length];
+        return (
+          <div 
+            class="polaroid-item" 
+            style={`--rotation: ${rotation}deg;`}
+            data-clone="end"
+          >
+            <div class="polaroid-frame">
+              <div class="polaroid-image-container">
+                {item.optimizedImage ? (
+                  <Image 
+                    src={item.optimizedImage}
+                    alt={item.caption || 'Behind the scenes'}
+                    width={300}
+                    height={300}
+                    loading="lazy"
+                    decoding="async"
+                    class="polaroid-image"
+                  />
+                ) : (
+                  <img 
+                    src={item.imagePath} 
+                    alt={item.caption || 'Behind the scenes'}
+                    loading="lazy"
+                    decoding="async"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                )}
+                <div class="polaroid-placeholder" style="display: none;">
+                  <span>BTS</span>
+                </div>
+              </div>
+              {item.caption && (
+                <div class="polaroid-caption">{item.caption}</div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+      
+      {/* Original images */}
+      {imagesWithOptimized.map((item, index) => {
+        const rotation = rotations[index % rotations.length];
+        return (
+          <div 
+            class="polaroid-item" 
+            style={`--rotation: ${rotation}deg;`}
+          >
+            <div class="polaroid-frame">
+              <div class="polaroid-image-container">
+                {item.optimizedImage ? (
+                  <Image 
+                    src={item.optimizedImage}
+                    alt={item.caption || 'Behind the scenes'}
+                    width={300}
+                    height={300}
+                    loading="lazy"
+                    decoding="async"
+                    class="polaroid-image"
+                  />
+                ) : (
+                  <img 
+                    src={item.imagePath} 
+                    alt={item.caption || 'Behind the scenes'}
+                    loading="lazy"
+                    decoding="async"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                )}
+                <div class="polaroid-placeholder" style="display: none;">
+                  <span>BTS</span>
+                </div>
+              </div>
+              {item.caption && (
+                <div class="polaroid-caption">{item.caption}</div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+      
+      {/* Clone images at the beginning for seamless looping */}
+      {imagesWithOptimized.map((item, index) => {
+        const rotation = rotations[index % rotations.length];
+        return (
+          <div 
+            class="polaroid-item" 
+            style={`--rotation: ${rotation}deg;`}
+            data-clone="start"
+          >
+            <div class="polaroid-frame">
+              <div class="polaroid-image-container">
+                {item.optimizedImage ? (
+                  <Image 
+                    src={item.optimizedImage}
+                    alt={item.caption || 'Behind the scenes'}
+                    width={300}
+                    height={300}
+                    loading="lazy"
+                    decoding="async"
+                    class="polaroid-image"
+                  />
+                ) : (
+                  <img 
+                    src={item.imagePath} 
+                    alt={item.caption || 'Behind the scenes'}
+                    loading="lazy"
+                    decoding="async"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                )}
+                <div class="polaroid-placeholder" style="display: none;">
+                  <span>BTS</span>
+                </div>
+              </div>
+              {item.caption && (
+                <div class="polaroid-caption">{item.caption}</div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+  
+  <button 
+    type="button"
+    class="carousel-button carousel-button-right" 
+    aria-label="Scroll right"
+    data-direction="right"
+  >
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M9 18l6-6-6-6"/>
+    </svg>
+  </button>
+</div>
+
+<style>
+  .polaroid-carousel-wrapper {
+    position: relative;
+    margin: var(--spacing-2xl) 0;
+  }
+
+  .carousel-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x mandatory;
+    padding: var(--spacing-sm) 0;
+  }
+
+  .carousel-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-container {
+      scroll-behavior: auto;
+    }
+  }
+
+  .carousel-container:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .carousel-track {
+    display: flex;
+    gap: var(--spacing-lg);
+    padding: 0 var(--spacing-md);
+  }
+
+  .polaroid-item {
+    flex: 0 0 220px;
+    scroll-snap-align: start;
+    transform: rotate(var(--rotation));
+    transition: transform 0.3s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .polaroid-item {
+      transition: none;
+    }
+  }
+
+  .polaroid-item:hover {
+    transform: rotate(var(--rotation)) scale(1.05) translateY(-8px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .polaroid-item:hover {
+      transform: rotate(var(--rotation));
+    }
+  }
+
+  .polaroid-frame {
+    background-color: #ffffff;
+    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-lg);
+    box-shadow: 
+      0 4px 8px rgba(0, 0, 0, 0.15),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .polaroid-image-container {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-charcoal) 0%, var(--color-black) 100%);
+    position: relative;
+  }
+
+  .polaroid-image-container img,
+  .polaroid-image-container :global(img),
+  .polaroid-image-container .polaroid-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .polaroid-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(254, 252, 248, 0.5);
+    font-size: 0.875rem;
+    font-style: italic;
+  }
+
+  .polaroid-caption {
+    margin-top: var(--spacing-sm);
+    padding: 0 4px;
+    font-size: 0.9rem;
+    color: #1a1a1a; /* Dark black, like Sharpie */
+    text-align: left;
+    font-family: 'Kalam', 'Permanent Marker', 'Comic Sans MS', cursive;
+    line-height: 1.3;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    position: relative;
+    z-index: 1;
+    /* Add slight text shadow to simulate Sharpie marker bleed */
+    text-shadow: 
+      0.5px 0.5px 0 rgba(0, 0, 0, 0.1),
+      -0.5px -0.5px 0 rgba(0, 0, 0, 0.1),
+      0 0 1px rgba(0, 0, 0, 0.05);
+    /* Slight bold effect to simulate marker thickness */
+    -webkit-text-stroke: 0.3px #1a1a1a;
+  }
+
+  .carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(254, 252, 248, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-black);
+    z-index: 10;
+    transition: background 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-button {
+      transition: none;
+    }
+  }
+
+  .carousel-button:hover {
+    background: var(--color-ivory);
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .carousel-button:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+
+  .carousel-button-left {
+    left: var(--spacing-md);
+  }
+
+  .carousel-button-right {
+    right: var(--spacing-md);
+  }
+
+  .carousel-button:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .carousel-button {
+      width: 36px;
+      height: 36px;
+    }
+
+    .carousel-button-left {
+      left: var(--spacing-xs);
+    }
+
+    .carousel-button-right {
+      right: var(--spacing-xs);
+    }
+
+    .polaroid-item {
+      flex: 0 0 180px;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Infinite Loop Carousel Logic for Polaroid Carousel
+   * 
+   * How it works:
+   * 1. Images are cloned at the beginning and end of the track
+   * 2. We start scrolling at the position of the first original image (after the end clones)
+   * 3. When scrolling reaches the end clones, we instantly jump to the start of original images
+   * 4. When scrolling reaches the start clones, we instantly jump to the end of original images
+   * 5. The jump happens during scroll momentum, making it imperceptible
+   */
+
+  (function() {
+    const carouselIdValue = 'polaroid-carousel';
+    const wrapper = document.querySelector(`[data-carousel-id="${carouselIdValue}"]`);
+    if (!wrapper) return;
+
+    const container = wrapper.querySelector('.carousel-container');
+    const track = wrapper.querySelector('[data-carousel-track]');
+    const leftButton = wrapper.querySelector('.carousel-button-left');
+    const rightButton = wrapper.querySelector('.carousel-button-right');
+    
+    if (!container || !track || !leftButton || !rightButton) return;
+
+    // Wait for layout to calculate proper widths
+    function initCarousel() {
+      const allItems = track.querySelectorAll('.polaroid-item');
+      const originalItems = track.querySelectorAll('.polaroid-item:not([data-clone])');
+      
+      if (originalItems.length === 0 || allItems.length === 0) {
+        setTimeout(initCarousel, 50);
+        return;
+      }
+
+      const firstItem = originalItems[0];
+      const itemWidth = firstItem.offsetWidth + 24; // item width + gap (var(--spacing-lg) = 2rem = 32px, but using 24px for calculation)
+      const numOriginalItems = originalItems.length;
+      
+      // Calculate scroll positions
+      // Structure: [end clones] [originals] [start clones]
+      const firstOriginal = originalItems[0];
+      const startOfOriginals = firstOriginal.offsetLeft - track.offsetLeft;
+      
+      const lastOriginal = originalItems[numOriginalItems - 1];
+      const endOfOriginals = lastOriginal.offsetLeft + lastOriginal.offsetWidth - track.offsetLeft;
+      
+      let rafId = null;
+      let jumpCooldown = false;
+      let lastScrollTime = Date.now();
+      let scrollEndCheck = null;
+      let lastScrollLeft = startOfOriginals;
+      
+      // Check if scrolling has stopped
+      const checkScrollStopped = () => {
+        const now = Date.now();
+        const timeSinceLastScroll = now - lastScrollTime;
+        
+        if (timeSinceLastScroll > 100 && jumpCooldown) {
+          // Scrolling has stopped, reset cooldown
+          jumpCooldown = false;
+          scrollEndCheck = null;
+        } else if (jumpCooldown) {
+          // Still scrolling or recently scrolled, check again soon
+          scrollEndCheck = setTimeout(checkScrollStopped, 50);
+        }
+      };
+
+      // Arrow button controls
+      leftButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Reset cooldown to allow immediate scrolling
+        jumpCooldown = false;
+        if (scrollEndCheck) {
+          clearTimeout(scrollEndCheck);
+          scrollEndCheck = null;
+        }
+        const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        const currentScroll = container.scrollLeft;
+        const targetScroll = currentScroll - (itemWidth * 3);
+        container.scrollTo({ left: targetScroll, behavior });
+      });
+
+      rightButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Reset cooldown to allow immediate scrolling
+        jumpCooldown = false;
+        if (scrollEndCheck) {
+          clearTimeout(scrollEndCheck);
+          scrollEndCheck = null;
+        }
+        const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        const currentScroll = container.scrollLeft;
+        const targetScroll = currentScroll + (itemWidth * 3);
+        container.scrollTo({ left: targetScroll, behavior });
+      });
+
+      // Keyboard navigation
+      container.addEventListener('keydown', (e) => {
+        const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          container.scrollBy({ left: -itemWidth * 3, behavior });
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          container.scrollBy({ left: itemWidth * 3, behavior });
+        }
+      });
+
+      // Infinite loop logic - check on every scroll
+      container.addEventListener('scroll', () => {
+        lastScrollTime = Date.now();
+        
+        // Use requestAnimationFrame to batch scroll events
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+        }
+        
+        rafId = requestAnimationFrame(() => {
+          const scrollLeft = container.scrollLeft;
+          const scrollDelta = scrollLeft - lastScrollLeft;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          
+          // Skip jump logic during cooldown period
+          if (jumpCooldown) {
+            lastScrollLeft = scrollLeft;
+            rafId = null;
+            return;
+          }
+
+          // If scrolling right and reached/passed the end of originals (into start clones)
+          // Also check if we're near the maximum scroll position
+          if (scrollDelta > 0 && (scrollLeft >= endOfOriginals - 5 || scrollLeft >= maxScroll - 10)) {
+            jumpCooldown = true;
+            const originalScrollBehavior = container.style.scrollBehavior;
+            container.style.scrollBehavior = 'auto';
+            
+            // Calculate overshoot - if we're past endOfOriginals, use that; otherwise use distance from maxScroll
+            const overshoot = scrollLeft >= endOfOriginals 
+              ? scrollLeft - endOfOriginals 
+              : Math.max(0, scrollLeft - (endOfOriginals - 5));
+            const targetPosition = startOfOriginals + overshoot;
+            
+            // Perform the jump
+            container.scrollLeft = targetPosition;
+            lastScrollLeft = targetPosition;
+            
+            // Restore scroll behavior after a brief moment
+            requestAnimationFrame(() => {
+              container.style.scrollBehavior = originalScrollBehavior || '';
+              // Start checking if scroll has stopped
+              if (!scrollEndCheck) {
+                scrollEndCheck = setTimeout(checkScrollStopped, 100);
+              }
+            });
+          }
+          // If scrolling left and reached/passed the start of originals (into end clones)
+          else if (scrollDelta < 0 && scrollLeft <= startOfOriginals + 5) {
+            jumpCooldown = true;
+            const originalScrollBehavior = container.style.scrollBehavior;
+            container.style.scrollBehavior = 'auto';
+            
+            const undershoot = Math.max(0, startOfOriginals - scrollLeft);
+            const targetPosition = endOfOriginals - undershoot;
+            
+            // Perform the jump
+            container.scrollLeft = targetPosition;
+            lastScrollLeft = targetPosition;
+            
+            // Restore scroll behavior after a brief moment
+            requestAnimationFrame(() => {
+              container.style.scrollBehavior = originalScrollBehavior || '';
+              // Start checking if scroll has stopped
+              if (!scrollEndCheck) {
+                scrollEndCheck = setTimeout(checkScrollStopped, 100);
+              }
+            });
+          } else {
+            lastScrollLeft = scrollLeft;
+          }
+          
+          rafId = null;
+        });
+      }, { passive: true });
+
+      // Initialize position at the start of original images
+      container.scrollLeft = startOfOriginals;
+      lastScrollLeft = startOfOriginals;
+    }
+
+    // Initialize after a short delay to ensure layout is complete
+    setTimeout(initCarousel, 100);
+  })();
+</script>

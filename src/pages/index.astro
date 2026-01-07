@@ -1,3 +1,217 @@
-<h1>Hello from Milettezzo</h1>
-<p>If you can see this, Astro is working.</p>
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { Image, getImage } from "astro:assets";
+import { homeContent } from "../content/home.ts";
+import heroImageSrc from "../images/hero.jpg";
+import portraitImageSrc from "../images/portrait.jpg";
 
+const { heroTitle, quotes } = homeContent;
+
+// Get optimized hero image for background
+const heroImage = await getImage({ src: heroImageSrc, width: 1920, height: 1080 });
+---
+
+<BaseLayout>
+  <!-- Preload critical hero image -->
+  <link rel="preload" as="image" href={heroImage.src} fetchpriority="high" />
+  <!-- Full-bleed Hero Section -->
+  <section class="hero" style={`background-image: url('${heroImage.src}');`}>
+    <div class="hero-overlay">
+      <h1 class="hero-title">{heroTitle}</h1>
+    </div>
+  </section>
+
+  <!-- Quotes and Portrait Section -->
+  <section class="quotes-portrait-section">
+    <div class="quotes-container">
+      {quotes.map((quote) => (
+        <blockquote class="quote">
+          <p>{quote.text}</p>
+          <cite>
+            {quote.href ? (
+              <a href={quote.href} target="_blank" rel="noopener noreferrer">
+                {quote.citation}
+              </a>
+            ) : (
+              quote.citation
+            )}
+          </cite>
+        </blockquote>
+      ))}
+    </div>
+    
+    <div class="portrait-container">
+      <Image 
+        src={portraitImageSrc}
+        alt="Portrait of Milette Gillow"
+        width={600}
+        height={800}
+        loading="lazy"
+        decoding="async"
+        class="portrait-image"
+      />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero Section - Full Bleed */
+  .hero {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    height: 90vh;
+    min-height: 500px;
+    max-height: 800px;
+    background-color: var(--color-charcoal);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--spacing-2xl);
+    margin-top: calc(-1 * var(--spacing-2xl));
+  }
+
+  .hero-overlay {
+    background-color: rgba(26, 26, 26, 0.4);
+    padding: var(--spacing-2xl);
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-title {
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 400;
+    color: var(--color-ivory);
+    margin: 0;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Quotes and Portrait Section */
+  .quotes-portrait-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-2xl);
+    align-items: start;
+    margin: var(--spacing-2xl) 0;
+    padding: 0 var(--spacing-md);
+  }
+
+  .quotes-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2xl);
+  }
+
+  .quote {
+    padding-left: var(--spacing-lg);
+    border-left: 2px solid var(--color-accent);
+  }
+
+  .quote p {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--color-black);
+    margin-bottom: var(--spacing-sm);
+    max-width: none;
+    font-family: var(--font-serif);
+  }
+
+  .quote cite {
+    font-style: normal;
+    font-size: 0.9375rem;
+    color: var(--color-charcoal);
+    display: block;
+    margin-top: var(--spacing-xs);
+  }
+
+  .portrait-container {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background-color: var(--color-charcoal);
+    overflow: hidden;
+  }
+
+  .portrait-container :global(img),
+  .portrait-container .portrait-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 968px) {
+    .hero {
+      height: 60vh;
+      min-height: 400px;
+    }
+
+    .quotes-portrait-section {
+      grid-template-columns: 1fr;
+      gap: var(--spacing-xl);
+    }
+
+    .portrait-container {
+      order: 2;
+      aspect-ratio: 3 / 4;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .portrait-container :global(img),
+    .portrait-container .portrait-image {
+      object-fit: contain;
+    }
+
+    .quotes-container {
+      order: 1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      height: 50vh;
+      min-height: 350px;
+      margin-top: calc(-1 * var(--spacing-xl));
+    }
+
+    .hero-overlay {
+      padding: var(--spacing-xl);
+    }
+
+    .quote p {
+      font-size: 1.125rem;
+    }
+
+    .quotes-portrait-section {
+      margin: var(--spacing-xl) 0;
+      padding-bottom: var(--spacing-2xl);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero {
+      height: 40vh;
+      min-height: 300px;
+    }
+
+    .hero-overlay {
+      padding: var(--spacing-md);
+    }
+
+    .quote {
+      padding-left: var(--spacing-md);
+    }
+  }
+</style>

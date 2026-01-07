@@ -1,0 +1,642 @@
+---
+/**
+ * LoopCarousel Component
+ * 
+ * Creates an infinitely looping horizontal carousel with arrow controls.
+ * 
+ * Looping Logic:
+ * - Uses scroll position manipulation to create seamless infinite scroll
+ * - When user scrolls to the end, we instantly (but invisibly) jump back to the start
+ * - When user scrolls to the beginning, we jump to the end
+ * - This creates the illusion of infinite scrolling without duplicating DOM nodes
+ * - The jump happens during scroll momentum, making it imperceptible
+ * 
+ * To add new tiles:
+ * - Add items to the tiles array prop
+ * - The carousel will automatically handle them
+ */
+
+interface Props {
+  tiles: Array<{
+    title: string;
+    subtitle: string;
+    href: string;
+    image: string;
+    badge?: string;
+  }>;
+  categoryId: string;
+}
+
+const { tiles, categoryId } = Astro.props;
+const carouselId = `carousel-${categoryId}`;
+---
+
+<div class="carousel-wrapper" data-carousel-id={carouselId}>
+  <button 
+    class="carousel-button carousel-button-left" 
+    aria-label="Scroll left"
+    data-direction="left"
+  >
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+  </button>
+  
+  <div class="carousel-container" tabindex="0" role="region" aria-label="Carousel">
+    <div class="carousel-track" data-carousel-track>
+      {/* Clone tiles at the end for seamless looping */}
+      {tiles.map((tile, index) => (
+        <a
+          href={tile.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="carousel-tile"
+          data-tile-index={index}
+          data-clone="end"
+        >
+          <div class="tile-image-container">
+            <img 
+              class="tile-image"
+              src={tile.image}
+              alt={tile.title}
+              loading="lazy"
+              decoding="async"
+              data-href={tile.href}
+              onerror="this.onerror=null; handleImageError(this);"
+            />
+            <div class="tile-placeholder" style="display: none;">
+              <span>{tile.title}</span>
+            </div>
+            {tile.badge && (
+              <span class="tile-badge">{tile.badge}</span>
+            )}
+          </div>
+          <div class="tile-info">
+            <h3 class="tile-title">{tile.title}</h3>
+            <p class="tile-subtitle">{tile.subtitle}</p>
+          </div>
+        </a>
+      ))}
+      {/* Original tiles */}
+      {tiles.map((tile, index) => (
+        <a
+          href={tile.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="carousel-tile"
+          data-tile-index={index}
+        >
+          <div class="tile-image-container">
+            <img 
+              class="tile-image"
+              src={tile.image}
+              alt={tile.title}
+              loading="lazy"
+              decoding="async"
+              data-href={tile.href}
+              onerror="this.onerror=null; handleImageError(this);"
+            />
+            <div class="tile-placeholder" style="display: none;">
+              <span>{tile.title}</span>
+            </div>
+            {tile.badge && (
+              <span class="tile-badge">{tile.badge}</span>
+            )}
+          </div>
+          <div class="tile-info">
+            <h3 class="tile-title">{tile.title}</h3>
+            <p class="tile-subtitle">{tile.subtitle}</p>
+          </div>
+        </a>
+      ))}
+      {/* Clone tiles at the beginning for seamless looping */}
+      {tiles.map((tile, index) => (
+        <a
+          href={tile.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="carousel-tile"
+          data-tile-index={index}
+          data-clone="start"
+        >
+          <div class="tile-image-container">
+            <img 
+              class="tile-image"
+              src={tile.image}
+              alt={tile.title}
+              loading="lazy"
+              decoding="async"
+              data-href={tile.href}
+              onerror="this.onerror=null; handleImageError(this);"
+            />
+            <div class="tile-placeholder" style="display: none;">
+              <span>{tile.title}</span>
+            </div>
+            {tile.badge && (
+              <span class="tile-badge">{tile.badge}</span>
+            )}
+          </div>
+          <div class="tile-info">
+            <h3 class="tile-title">{tile.title}</h3>
+            <p class="tile-subtitle">{tile.subtitle}</p>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+  
+  <button 
+    class="carousel-button carousel-button-right" 
+    aria-label="Scroll right"
+    data-direction="right"
+  >
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M9 18l6-6-6-6"/>
+    </svg>
+  </button>
+</div>
+
+<style>
+  .carousel-wrapper {
+    position: relative;
+    margin: 0;
+  }
+
+  .carousel-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x mandatory;
+    padding: var(--spacing-sm) 0;
+  }
+
+  .carousel-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-container {
+      scroll-behavior: auto;
+    }
+  }
+
+  .carousel-container:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .carousel-track {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: 0 var(--spacing-md);
+  }
+
+  .carousel-tile {
+    flex: 0 0 200px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-tile {
+      transition: none;
+    }
+  }
+
+  .carousel-tile:hover {
+    transform: translateY(-8px) scale(1.05);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-tile:hover {
+      transform: none;
+    }
+  }
+
+  .tile-image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 4px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-charcoal) 0%, var(--color-black) 100%);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .tile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile-image {
+      transition: none;
+    }
+  }
+
+  .carousel-tile:hover .tile-image {
+    transform: scale(1.1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-tile:hover .tile-image {
+      transform: none;
+    }
+  }
+
+  .tile-placeholder {
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-charcoal) 0%, var(--color-black) 100%);
+    color: var(--color-ivory);
+    padding: var(--spacing-sm);
+    text-align: center;
+    font-size: 0.875rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .tile-badge {
+    position: absolute;
+    top: var(--spacing-xs);
+    right: var(--spacing-xs);
+    background-color: var(--color-accent);
+    color: var(--color-ivory);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .tile-info {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 0 var(--spacing-xs);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile-info {
+      transition: none;
+    }
+  }
+
+  .carousel-tile:hover .tile-info {
+    opacity: 1;
+  }
+
+  .tile-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: var(--color-ivory);
+    font-family: var(--font-sans);
+  }
+
+  .tile-subtitle {
+    font-size: 0.8125rem;
+    color: rgba(254, 252, 248, 0.7);
+    margin: 0;
+    font-family: var(--font-sans);
+  }
+
+  .carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(26, 26, 26, 0.8);
+    border: none;
+    color: var(--color-ivory);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-button {
+      transition: background-color 0.01ms;
+    }
+  }
+
+  .carousel-wrapper:hover .carousel-button {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .carousel-button:hover {
+    background-color: rgba(26, 26, 26, 0.95);
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-button:hover {
+      transform: translateY(-50%);
+    }
+  }
+
+  .carousel-button:focus-visible {
+    opacity: 1;
+    pointer-events: all;
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .carousel-button-left {
+    left: 0;
+  }
+
+  .carousel-button-right {
+    right: 0;
+  }
+
+  @media (max-width: 968px) {
+    .carousel-tile {
+      flex: 0 0 160px;
+    }
+
+    .carousel-button {
+      width: 32px;
+      height: 32px;
+      opacity: 1;
+      pointer-events: all;
+      background-color: rgba(26, 26, 26, 0.9);
+    }
+
+    .carousel-button svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+</style>
+
+<script define:vars={{ carouselId }}>
+  /**
+   * Handle image errors and fetch Instagram thumbnails as fallback
+   * Uses Instagram's oEmbed API via a CORS proxy service
+   */
+  function handleImageError(img) {
+    const href = img.getAttribute('data-href');
+    if (!href || !href.includes('instagram.com')) {
+      // Not an Instagram link, show placeholder
+      img.style.display = 'none';
+      const placeholder = img.nextElementSibling;
+      if (placeholder && placeholder.classList.contains('tile-placeholder')) {
+        placeholder.style.display = 'flex';
+      }
+      return;
+    }
+
+    try {
+      // Extract Instagram post shortcode from URL
+      const instagramMatch = href.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
+      if (!instagramMatch) {
+        throw new Error('Could not extract Instagram post ID');
+      }
+
+      const shortcode = instagramMatch[1];
+      
+      // Try Instagram's direct media URL first (sometimes works)
+      const directUrl = `https://www.instagram.com/p/${shortcode}/media/?size=l`;
+      const testImg = new Image();
+      
+      testImg.onload = () => {
+        img.src = directUrl;
+        img.style.display = 'block';
+      };
+      
+      testImg.onerror = () => {
+        // Fallback: Use oEmbed API via CORS proxy
+        // Using a public CORS proxy service
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://api.instagram.com/oembed/?url=${encodeURIComponent(href)}`)}`;
+        
+        fetch(proxyUrl)
+          .then(response => response.json())
+          .then(data => {
+            if (data && data.thumbnail_url) {
+              img.src = data.thumbnail_url;
+              img.style.display = 'block';
+            } else {
+              throw new Error('No thumbnail URL in response');
+            }
+          })
+          .catch(() => {
+            // Final fallback: show placeholder
+            img.style.display = 'none';
+            const placeholder = img.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('tile-placeholder')) {
+              placeholder.style.display = 'flex';
+            }
+          });
+      };
+      
+      testImg.src = directUrl;
+    } catch (error) {
+      // Show placeholder on any error
+      img.style.display = 'none';
+      const placeholder = img.nextElementSibling;
+      if (placeholder && placeholder.classList.contains('tile-placeholder')) {
+        placeholder.style.display = 'flex';
+      }
+    }
+  }
+
+  /**
+   * Infinite Loop Carousel Logic
+   * 
+   * How it works:
+   * 1. Tiles are cloned at the beginning and end of the track
+   * 2. We start scrolling at the position of the first original tile (after the end clones)
+   * 3. When scrolling reaches the end clones, we instantly jump to the start of original tiles
+   * 4. When scrolling reaches the start clones, we instantly jump to the end of original tiles
+   * 5. The jump happens during scroll momentum, making it imperceptible
+   */
+
+  (function() {
+    const wrapper = document.querySelector(`[data-carousel-id="${carouselId}"]`);
+    if (!wrapper) return;
+
+    const container = wrapper.querySelector('.carousel-container');
+    const track = wrapper.querySelector('[data-carousel-track]');
+    const leftButton = wrapper.querySelector('.carousel-button-left');
+    const rightButton = wrapper.querySelector('.carousel-button-right');
+    
+    if (!container || !track || !leftButton || !rightButton) return;
+
+      // Wait for layout to calculate proper widths
+    function initCarousel() {
+      const allTiles = track.querySelectorAll('.carousel-tile');
+      const originalTiles = track.querySelectorAll('.carousel-tile:not([data-clone])');
+      
+      if (originalTiles.length === 0 || allTiles.length === 0) {
+        setTimeout(initCarousel, 50);
+        return;
+      }
+
+      const firstTile = originalTiles[0];
+      const tileWidth = firstTile.offsetWidth + 16; // tile width + gap
+      const numOriginalTiles = originalTiles.length;
+      
+      // Calculate scroll positions
+      // Structure: [end clones] [originals] [start clones]
+      // We need to find where originals start and end
+      const endClones = track.querySelectorAll('.carousel-tile[data-clone="end"]');
+      const startClones = track.querySelectorAll('.carousel-tile[data-clone="start"]');
+      
+      // Get the first original tile position
+      const firstOriginal = originalTiles[0];
+      const startOfOriginals = firstOriginal.offsetLeft - track.offsetLeft;
+      
+      // Get the last original tile position
+      const lastOriginal = originalTiles[numOriginalTiles - 1];
+      const endOfOriginals = lastOriginal.offsetLeft + lastOriginal.offsetWidth - track.offsetLeft;
+      
+      let isJumping = false;
+      let lastScrollLeft = startOfOriginals;
+      let jumpTimeout = null;
+
+      // Arrow button controls
+      leftButton.addEventListener('click', () => {
+        const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        container.scrollBy({ left: -tileWidth * 3, behavior });
+      });
+
+      rightButton.addEventListener('click', () => {
+        const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        container.scrollBy({ left: tileWidth * 3, behavior });
+      });
+
+      // Keyboard navigation
+      container.addEventListener('keydown', (e) => {
+        const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          container.scrollBy({ left: -tileWidth * 3, behavior });
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          container.scrollBy({ left: tileWidth * 3, behavior });
+        }
+      });
+
+      // Infinite loop logic - check on every scroll
+      let rafId = null;
+      let jumpCooldown = false;
+      let lastScrollTime = Date.now();
+      let scrollEndCheck = null;
+      
+      // Check if scrolling has stopped
+      const checkScrollStopped = () => {
+        const now = Date.now();
+        const timeSinceLastScroll = now - lastScrollTime;
+        
+        if (timeSinceLastScroll > 100 && jumpCooldown) {
+          // Scrolling has stopped, reset cooldown
+          jumpCooldown = false;
+          scrollEndCheck = null;
+        } else if (jumpCooldown) {
+          // Still scrolling or recently scrolled, check again soon
+          scrollEndCheck = setTimeout(checkScrollStopped, 50);
+        }
+      };
+      
+      container.addEventListener('scroll', () => {
+        lastScrollTime = Date.now();
+        
+        // Use requestAnimationFrame to batch scroll events
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+        }
+        
+        rafId = requestAnimationFrame(() => {
+          const scrollLeft = container.scrollLeft;
+          const scrollDelta = scrollLeft - lastScrollLeft;
+          
+          // Skip jump logic during cooldown period
+          if (jumpCooldown) {
+            lastScrollLeft = scrollLeft;
+            rafId = null;
+            return;
+          }
+
+          // If scrolling right and reached/passed the end of originals (into start clones)
+          if (scrollDelta > 0 && scrollLeft >= endOfOriginals - 1) {
+            jumpCooldown = true;
+            const originalScrollBehavior = container.style.scrollBehavior;
+            container.style.scrollBehavior = 'auto';
+            
+            const overshoot = scrollLeft - endOfOriginals;
+            const targetPosition = startOfOriginals + overshoot;
+            
+            // Perform the jump
+            container.scrollLeft = targetPosition;
+            lastScrollLeft = targetPosition;
+            
+            // Restore scroll behavior after a brief moment
+            requestAnimationFrame(() => {
+              container.style.scrollBehavior = originalScrollBehavior || '';
+              // Start checking if scroll has stopped
+              if (!scrollEndCheck) {
+                scrollEndCheck = setTimeout(checkScrollStopped, 100);
+              }
+            });
+          }
+          // If scrolling left and reached/passed the start of originals (into end clones)
+          else if (scrollDelta < 0 && scrollLeft <= startOfOriginals + 1) {
+            jumpCooldown = true;
+            const originalScrollBehavior = container.style.scrollBehavior;
+            container.style.scrollBehavior = 'auto';
+            
+            const undershoot = startOfOriginals - scrollLeft;
+            const targetPosition = endOfOriginals - undershoot;
+            
+            // Perform the jump
+            container.scrollLeft = targetPosition;
+            lastScrollLeft = targetPosition;
+            
+            // Restore scroll behavior after a brief moment
+            requestAnimationFrame(() => {
+              container.style.scrollBehavior = originalScrollBehavior || '';
+              // Start checking if scroll has stopped
+              if (!scrollEndCheck) {
+                scrollEndCheck = setTimeout(checkScrollStopped, 100);
+              }
+            });
+          } else {
+            lastScrollLeft = scrollLeft;
+          }
+          
+          rafId = null;
+        });
+      }, { passive: true });
+
+      // Initialize position at the start of original tiles
+      container.scrollLeft = startOfOriginals;
+      lastScrollLeft = startOfOriginals;
+    }
+
+    // Initialize after a short delay to ensure layout is complete
+    setTimeout(initCarousel, 100);
+  })();
+</script>
+

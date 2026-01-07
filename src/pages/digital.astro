@@ -1,0 +1,597 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import LoopCarousel from "../components/LoopCarousel.astro";
+import { getImage } from "astro:assets";
+import { digitalContent, digitalHeroBanner, digitalContinueWatching } from "../content/digital.ts";
+import heroImageSrc from "../images/digital/hgo-vixen.jpg";
+
+const { title: heroTitle, description: heroDescription, watchUrl, moreInfoText, moreInfoUrl, image: heroImagePath } = digitalHeroBanner;
+const { title: continueTitle, microcopy: continueMicrocopy } = digitalContinueWatching;
+
+// Get optimized hero image for background
+let heroImageUrl = '';
+if (heroImagePath) {
+  const heroImage = await getImage({ src: heroImageSrc, width: 1920, height: 1080 });
+  heroImageUrl = heroImage.src;
+}
+---
+
+<BaseLayout title="Digital | Milette Gillow">
+  {heroImageUrl && (
+    <link rel="preload" as="image" href={heroImageUrl} fetchpriority="high" />
+  )}
+  <div class="digital-page" style={heroImageUrl ? `--hero-image: url('${heroImageUrl}');` : ''}>
+    <!-- Top Gradient -->
+    <div class="hero-gradient-top"></div>
+    
+    <!-- Bottom Gradient (extends through first carousel) -->
+    <div class="hero-gradient-bottom"></div>
+
+    <div class="digital-content">
+      <h1>Digital</h1>
+
+      <!-- Hero/Banner Content -->
+      <section class="hero-banner">
+        <div class="hero-banner-content">
+          <h2 class="hero-banner-title">{heroTitle}</h2>
+          <p class="hero-banner-description">{heroDescription}</p>
+          <div class="hero-banner-actions">
+            <a href={watchUrl} class="btn btn-primary">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M7 4v12l10-6-10-6z"/>
+              </svg>
+              <span>Play</span>
+            </a>
+            {moreInfoText ? (
+              <button class="btn btn-secondary" id="more-info-btn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="10" cy="10" r="9"/>
+                  <path d="M10 7v6M7 10h6"/>
+                </svg>
+                <span>More Info</span>
+              </button>
+            ) : (
+              <a href={moreInfoUrl || "#"} class="btn btn-secondary">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="10" cy="10" r="9"/>
+                  <path d="M10 7v6M7 10h6"/>
+                </svg>
+                <span>More Info</span>
+              </a>
+            )}
+          </div>
+
+          <!-- More Info Modal -->
+          {moreInfoText && (
+            <dialog id="more-info-modal" class="more-info-modal">
+              <div class="modal-content">
+                <button class="modal-close" id="modal-close-btn" aria-label="Close">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+                <h2 class="modal-title">{heroTitle}</h2>
+                <div class="modal-text" set:html={moreInfoText}></div>
+              </div>
+            </dialog>
+          )}
+        </div>
+      </section>
+
+      <!-- Continue Watching (Optional Netflix Wink) -->
+      <section class="continue-watching">
+        <h3 class="section-title">{continueTitle}</h3>
+        <p class="section-microcopy">{continueMicrocopy}</p>
+      </section>
+
+      <!-- Carousel Categories -->
+      {digitalContent.map((category) => (
+        <section class="carousel-category">
+          <div class="category-header">
+            <h3 class="section-title">{category.name}</h3>
+            {category.microcopy && (
+              <p class="section-microcopy">{category.microcopy}</p>
+            )}
+          </div>
+          <LoopCarousel tiles={category.tiles} categoryId={category.id} />
+        </section>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .digital-page {
+    background-color: #0F0F0F;
+    color: var(--color-ivory);
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Hero Image Background - Top 1/3 only */
+  .digital-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 110vh;
+    background-image: var(--hero-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+    max-width: 100vw;
+  }
+
+  /* Top Gradient */
+  .hero-gradient-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: linear-gradient(to bottom, rgba(15, 15, 15, 1) 0%, rgba(15, 15, 15, 0.8) 50%, rgba(15, 15, 15, 0) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Bottom Gradient (extends through first carousel) */
+  .hero-gradient-bottom {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 120vh;
+    background: linear-gradient(to bottom, rgba(15, 15, 15, 0) 0%, rgba(15, 15, 15, 0.5) 50%, rgba(15, 15, 15, 1) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .digital-content {
+    position: relative;
+    z-index: 2;
+    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-2xl);
+    margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-md)) 0;
+  }
+
+  .digital-content h1 {
+    font-size: 1.125rem;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #E50914; /* Netflix red */
+    margin-bottom: var(--spacing-md);
+    margin-top: 0;
+    padding: 0 var(--spacing-md);
+    max-width: var(--max-width-wide);
+    margin-left: auto;
+    margin-right: auto;
+    letter-spacing: 0.05em;
+  }
+
+  /* Hero Banner */
+  .hero-banner {
+    max-width: var(--max-width-wide);
+    margin: 0 auto var(--spacing-lg);
+    padding: var(--spacing-xl) var(--spacing-md);
+    position: relative;
+  }
+
+  .hero-banner-content {
+    max-width: 600px;
+    position: relative;
+  }
+
+  .hero-banner-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-ivory);
+    font-weight: 400;
+  }
+
+  .hero-banner-description {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: rgba(254, 252, 248, 0.9);
+    margin-bottom: var(--spacing-md);
+    max-width: none;
+  }
+
+  .hero-banner-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 0.625rem 1.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-sans);
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: none;
+    }
+  }
+
+  .btn-primary {
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  .btn-primary:hover {
+    background-color: rgba(255, 255, 255, 0.75);
+    transform: scale(1.05);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary:hover {
+      transform: none;
+    }
+  }
+
+  .btn-primary svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .btn-secondary {
+    background-color: rgba(109, 109, 110, 0.7);
+    color: #ffffff;
+    border: none;
+    backdrop-filter: blur(10px);
+  }
+
+  .btn-secondary:hover {
+    background-color: rgba(109, 109, 110, 0.4);
+  }
+
+  .btn-secondary svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* More Info Modal */
+  .more-info-modal {
+    background: rgba(0, 0, 0, 0.85);
+    border: none;
+    padding: 0;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    border-radius: 8px;
+    color: var(--color-ivory);
+    backdrop-filter: blur(10px);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+
+  .more-info-modal.animate-in {
+    animation: modalFadeIn 0.3s ease forwards;
+  }
+
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .more-info-modal {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    .more-info-modal.animate-in {
+      animation: none;
+    }
+  }
+
+  .more-info-modal::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+  }
+
+  .more-info-modal.animate-in::backdrop {
+    animation: backdropFadeIn 0.3s ease forwards;
+  }
+
+  @keyframes backdropFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .more-info-modal::backdrop {
+      opacity: 1;
+    }
+    .more-info-modal.animate-in::backdrop {
+      animation: none;
+    }
+  }
+
+  .modal-content {
+    padding: var(--spacing-2xl);
+    position: relative;
+    overflow-y: auto;
+    max-height: 80vh;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-ivory);
+    transition: background 0.2s ease;
+    z-index: 10;
+  }
+
+  .modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .modal-close svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .modal-title {
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-ivory);
+    padding-right: var(--spacing-2xl);
+  }
+
+  .modal-text {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(254, 252, 248, 0.9);
+  }
+
+  .modal-text p {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .modal-text p:last-child {
+    margin-bottom: 0;
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Continue Watching Section */
+  .continue-watching {
+    max-width: var(--max-width-wide);
+    margin: 0 auto var(--spacing-lg);
+    padding: 0 var(--spacing-md);
+  }
+
+  /* Carousel Category Sections */
+  .carousel-category {
+    max-width: var(--max-width-wide);
+    margin: 0 auto var(--spacing-sm);
+    padding: 0 var(--spacing-sm);
+  }
+
+  .category-header {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .section-title {
+    font-size: clamp(1.5rem, 3vw, 1.875rem);
+    color: var(--color-ivory);
+    margin-bottom: var(--spacing-xs);
+    font-weight: 400;
+  }
+
+  .section-microcopy {
+    font-size: 0.9375rem;
+    color: rgba(254, 252, 248, 0.6);
+    margin: 0;
+    font-style: italic;
+    max-width: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 968px) {
+    .digital-page {
+      padding: var(--spacing-xl) var(--spacing-md);
+      margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-md)) 0;
+      overflow-x: hidden;
+    }
+
+    .digital-page::before {
+      left: 0;
+      right: 0;
+      width: 100vw;
+      max-width: 100vw;
+      height: 50vh;
+      background-size: contain;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+
+    .hero-gradient-top {
+      width: 100vw;
+      max-width: 100vw;
+      height: 80px;
+    }
+
+    .hero-gradient-bottom {
+      width: 100vw;
+      max-width: 100vw;
+      height: 50vh;
+    }
+
+    .digital-content {
+      padding-top: calc(var(--spacing-xl) + var(--spacing-md));
+      margin-top: 0;
+    }
+
+    .digital-content h1 {
+      background-color: #000000;
+      padding: var(--spacing-md) var(--spacing-md);
+      margin-left: calc(-1 * var(--spacing-md));
+      margin-right: calc(-1 * var(--spacing-md));
+      margin-top: calc(-1 * var(--spacing-xl) - var(--spacing-md));
+      width: 100vw;
+      max-width: 100vw;
+      position: relative;
+      z-index: 3;
+    }
+
+    .digital-content h1::before {
+      content: '';
+      position: absolute;
+      top: calc(-1 * var(--spacing-xl) - var(--spacing-md));
+      left: calc(-1 * var(--spacing-md));
+      right: calc(-1 * var(--spacing-md));
+      height: calc(var(--spacing-xl) + var(--spacing-md));
+      background-color: #000000;
+      z-index: -1;
+    }
+
+    .hero-banner {
+      padding: var(--spacing-lg) var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .hero-banner-title {
+      font-size: 1.5rem;
+    }
+
+    .hero-banner-description {
+      font-size: 1rem;
+    }
+
+    .btn {
+      padding: var(--spacing-xs) var(--spacing-md);
+      font-size: 0.9375rem;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Netflix-style "TA-DUM" easter egg
+   * Appears as text-only on hover over the "Digital" heading
+   */
+  document.addEventListener('DOMContentLoaded', () => {
+    const digitalHeading = document.querySelector('.digital-content h1');
+    if (!digitalHeading) return;
+
+    digitalHeading.addEventListener('mouseenter', () => {
+      // Check if TA-DUM already exists
+      const existingTaDum = digitalHeading.querySelector('.ta-dum-easter-egg');
+      if (existingTaDum) return;
+      
+      const taDum = document.createElement('span');
+      taDum.className = 'ta-dum-easter-egg';
+      taDum.textContent = ' TA-DUM';
+      taDum.style.opacity = '0';
+      taDum.style.transition = 'opacity 0.3s ease';
+      taDum.style.fontSize = '0.6em';
+      taDum.style.fontStyle = 'italic';
+      taDum.style.color = 'rgba(254, 252, 248, 0.8)';
+      taDum.style.marginLeft = '0.5em';
+      taDum.style.display = 'inline-block';
+      
+      digitalHeading.appendChild(taDum);
+      
+      requestAnimationFrame(() => {
+        taDum.style.opacity = '1';
+      });
+    });
+
+    digitalHeading.addEventListener('mouseleave', () => {
+      const taDum = digitalHeading.querySelector('.ta-dum-easter-egg');
+      if (taDum) {
+        taDum.style.opacity = '0';
+        setTimeout(() => {
+          if (taDum.parentNode) {
+            taDum.remove();
+          }
+        }, 300);
+      }
+    });
+  });
+
+  /**
+   * Modal animation - Netflix-style zoom in effect
+   */
+  document.addEventListener('DOMContentLoaded', () => {
+    const moreInfoBtn = document.getElementById('more-info-btn');
+    const modal = document.getElementById('more-info-modal');
+    const closeBtn = document.getElementById('modal-close-btn');
+
+    if (moreInfoBtn && modal) {
+      moreInfoBtn.addEventListener('click', () => {
+        modal.showModal();
+        // Trigger animation after dialog is shown
+        requestAnimationFrame(() => {
+          modal.classList.add('animate-in');
+        });
+      });
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          modal.close();
+          modal.classList.remove('animate-in');
+        });
+      }
+
+      // Close on backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.close();
+          modal.classList.remove('animate-in');
+        }
+      });
+
+      // Reset animation when modal closes
+      modal.addEventListener('close', () => {
+        modal.classList.remove('animate-in');
+      });
+    }
+  });
+</script>
+

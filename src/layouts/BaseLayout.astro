@@ -1,0 +1,75 @@
+---
+import '../styles/global.css';
+
+const { title = "Milette Gillow | Mezzo-Soprano" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    
+    <!-- Google Fonts - Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Typography: Crimson Text (serif) + Inter (sans) + Kalam (handwritten) -->
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&family=Kalam:wght@300;400&display=swap" 
+      rel="stylesheet" 
+    />
+  </head>
+
+  <body>
+    <header>
+      <nav>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+          <a href="/">Home</a>
+          <a href="/biography">Biography</a>
+          <a href="/performances">Performances</a>
+          <a href="/digital">Digital</a>
+          <a href="/contact">Contact</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <script>
+      // Hamburger menu toggle
+      (function() {
+        const menuToggle = document.getElementById('menu-toggle');
+        const navLinks = document.getElementById('nav-links');
+        
+        if (!menuToggle || !navLinks) return;
+        
+        menuToggle.addEventListener('click', () => {
+          const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+          menuToggle.setAttribute('aria-expanded', !isExpanded);
+          navLinks.classList.toggle('nav-open');
+          menuToggle.classList.toggle('menu-open');
+        });
+        
+        // Close menu when clicking a link (mobile/tablet)
+        navLinks.querySelectorAll('a').forEach(link => {
+          link.addEventListener('click', () => {
+            if (window.innerWidth <= 968) {
+              menuToggle.setAttribute('aria-expanded', 'false');
+              navLinks.classList.remove('nav-open');
+              menuToggle.classList.remove('menu-open');
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

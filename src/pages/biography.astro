@@ -1,0 +1,146 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { Image, getImage } from "astro:assets";
+import { biographyContent } from "../content/biography.ts";
+import bioImageSrc from "../images/bio.jpg";
+
+const { paragraphs } = biographyContent;
+const bioImage = await getImage({ src: bioImageSrc, width: 600, height: 800 });
+---
+
+<BaseLayout title="Biography | Milette Gillow">
+  <!-- Preload critical portrait image -->
+  <link rel="preload" as="image" href={bioImage.src} fetchpriority="high" />
+  <div class="biography-page">
+    <h1>Biography</h1>
+
+    <div class="bio-layout">
+      <!-- Left Column: Portrait -->
+      <div class="bio-portrait">
+        <div class="portrait-container">
+          <Image 
+            src={bioImageSrc}
+            alt="Milette Gillow"
+            width={600}
+            height={800}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            class="bio-portrait-image"
+          />
+          <div class="portrait-placeholder" style="display: none;">
+            <span>MG</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Bio Content -->
+      <div class="bio-content">
+        {paragraphs.map((paragraph) => (
+          <p class="bio-paragraph" set:html={paragraph} />
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .biography-page {
+    max-width: var(--max-width-wide);
+    margin: 0 auto;
+  }
+
+  /* Two-Column Layout */
+  .bio-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-2xl);
+    align-items: start;
+  }
+
+  /* Portrait Column */
+  .bio-portrait {
+    position: sticky;
+    top: var(--spacing-xl);
+  }
+
+  .portrait-container {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 4px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-charcoal) 0%, var(--color-black) 100%);
+  }
+
+  .portrait-container :global(img),
+  .portrait-container .bio-portrait-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .portrait-placeholder {
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-ivory);
+    font-size: 3rem;
+    font-weight: 400;
+    font-family: var(--font-serif);
+    letter-spacing: 0.1em;
+  }
+
+  /* Bio Content Column */
+  .bio-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* Bio Paragraphs */
+  .bio-paragraph {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--color-black);
+    max-width: none;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .bio-paragraph:last-child {
+    margin-bottom: 0;
+  }
+
+  .bio-paragraph em {
+    font-style: italic;
+    color: var(--color-charcoal);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 968px) {
+    .biography-page {
+      padding: 0 var(--spacing-lg);
+      padding-bottom: var(--spacing-2xl);
+    }
+
+    .bio-layout {
+      grid-template-columns: 1fr;
+      gap: var(--spacing-xl);
+    }
+
+    .bio-portrait {
+      position: static;
+      width: 100%;
+      margin: 0;
+    }
+
+    .bio-paragraph {
+      font-size: 1rem;
+    }
+  }
+
+</style>
+

@@ -1,0 +1,619 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { Image } from "astro:assets";
+import { performances, type PerformanceCategory } from "../content/performances.ts";
+import { getImageForPath } from "../utils/imageMap.ts";
+
+// Get unique categories for filters
+const categories: PerformanceCategory[] = ['opera', 'concert', 'oratorio', 'choral', 'other'];
+
+// Pre-process performances to get optimized images
+const performancesWithImages = await Promise.all(
+  performances.map(async (performance) => {
+    const optimizedImage = getImageForPath(performance.image);
+    return {
+      ...performance,
+      optimizedImage,
+      // Keep original path as fallback
+      imagePath: performance.image
+    };
+  })
+);
+
+// Helper function to format date as "Jan 2022"
+function formatDate(year: number, month?: number): string {
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthIndex = (month || 1) - 1;
+  return `${monthNames[monthIndex]} ${year}`;
+}
+
+// Sort by year and month, newest first
+const allPerformances = performancesWithImages.sort((a, b) => {
+  const aMonth = a.month || 1;
+  const bMonth = b.month || 1;
+  if (b.year !== a.year) {
+    return b.year - a.year;
+  }
+  return bMonth - aMonth;
+});
+---
+
+<BaseLayout title="Performances | Milette Gillow">
+  <div class="performances-page">
+    <h1>Performances</h1>
+    <p class="page-subtitle">Selected performances from past seasons</p>
+
+    <!-- Filter UI -->
+    <div class="filter-container">
+      <button class="filter-toggle" id="filter-toggle" aria-label="Filter performances" aria-expanded="false">
+        <span class="filter-toggle-text">All</span>
+      </button>
+      <div class="filters" id="filters" role="tablist" aria-label="Filter performances by category">
+        <a href="#all" class="filter-btn active" data-filter="all" role="tab" aria-selected="true">
+          All
+        </a>
+        {categories.map((category) => (
+          <a 
+            href={`#${category}`} 
+            class="filter-btn" 
+            data-filter={category}
+            role="tab"
+            aria-selected="false"
+          >
+            {category.charAt(0).toUpperCase() + category.slice(1)}
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- Performances Grid -->
+    <div class="performances-grid" id="performances-grid">
+      {allPerformances.map((performance) => (
+        <article 
+          class="performance-tile" 
+          data-category={performance.category}
+          data-year={performance.year}
+        >
+          <div class="tile-image-wrapper">
+            {performance.href ? (
+              <a 
+                href={performance.href} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="tile-link"
+                aria-label={`View ${performance.workTitle} - Opens in new tab`}
+              >
+                {performance.optimizedImage ? (
+                  <Image 
+                    src={performance.optimizedImage}
+                    alt={`${performance.role} in ${performance.workTitle}`}
+                    width={400}
+                    height={300}
+                    loading="lazy"
+                    decoding="async"
+                    class="performance-image"
+                  />
+                ) : (
+                  <img 
+                    src={performance.imagePath} 
+                    alt={`${performance.role} in ${performance.workTitle}`}
+                    loading="lazy"
+                    decoding="async"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                )}
+                <div class="image-placeholder" style="display: none;">
+                  <span>{performance.workTitle.charAt(0)}</span>
+                </div>
+                <span class="external-link-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 1h6v6M13 1L7 7"/>
+                  </svg>
+                </span>
+              </a>
+            ) : (
+              <button 
+                class="tile-button"
+                onclick={`window.open('${performance.image}', '_blank')`}
+                aria-label={`View larger image of ${performance.workTitle}`}
+              >
+                {performance.optimizedImage ? (
+                  <Image 
+                    src={performance.optimizedImage}
+                    alt={`${performance.role} in ${performance.workTitle}`}
+                    width={400}
+                    height={300}
+                    loading="lazy"
+                    decoding="async"
+                    class="performance-image"
+                  />
+                ) : (
+                  <img 
+                    src={performance.imagePath} 
+                    alt={`${performance.role} in ${performance.workTitle}`}
+                    loading="lazy"
+                    decoding="async"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                )}
+                <div class="image-placeholder" style="display: none;">
+                  <span>{performance.workTitle.charAt(0)}</span>
+                </div>
+              </button>
+            )}
+          </div>
+          
+          <div class="tile-info">
+            <div class="tile-role">{performance.role}</div>
+            <div class="tile-work">{performance.workTitle}</div>
+            <div class="tile-meta">
+              <span class="tile-venue">{performance.presenterOrVenue}</span>
+              <span class="tile-separator">•</span>
+              <span class="tile-year">{formatDate(performance.year, performance.month)}</span>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <p class="no-results" style="display: none;">No performances found in this category.</p>
+  </div>
+</BaseLayout>
+
+<style>
+  .performances-page {
+    max-width: var(--max-width-wide);
+    margin: 0 auto;
+  }
+
+  .page-subtitle {
+    font-size: 1.125rem;
+    color: var(--color-charcoal);
+    margin-bottom: var(--spacing-xl);
+    font-style: italic;
+    max-width: none;
+  }
+
+  /* Filter Container */
+  .filter-container {
+    position: relative;
+    margin-bottom: var(--spacing-xl);
+  }
+
+  /* Filter Toggle Button */
+  .filter-toggle {
+    display: none;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-ivory);
+    border: 1px solid rgba(26, 26, 26, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    color: var(--color-black);
+    transition: all 0.2s ease;
+  }
+
+  .filter-toggle:hover {
+    background-color: rgba(26, 26, 26, 0.05);
+    border-color: var(--color-accent);
+  }
+
+  .filter-toggle:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .filter-toggle-text {
+    font-weight: 500;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+    font-size: 0.9375rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .filter-toggle {
+      transition: none;
+    }
+  }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(26, 26, 26, 0.1);
+    padding-bottom: var(--spacing-md);
+    transition: opacity 0.2s ease, max-height 0.3s ease;
+  }
+
+  .filter-btn {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.9375rem;
+    color: var(--color-charcoal);
+    text-decoration: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    text-transform: capitalize;
+    transition: color 0.2s ease, border-color 0.2s ease;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .filter-btn {
+      transition: none;
+    }
+  }
+
+  .filter-btn:hover {
+    color: var(--color-black);
+  }
+
+  .filter-btn.active,
+  .filter-btn:focus-visible {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+    outline: none;
+  }
+
+  .filter-btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Performances Grid */
+  .performances-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .performance-tile {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .performance-tile {
+      transition: none;
+    }
+  }
+
+  .performance-tile.hidden {
+    display: none;
+  }
+
+  .tile-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 4px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-charcoal) 0%, var(--color-black) 100%);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .tile-link,
+  .tile-button {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: relative;
+    display: block;
+  }
+
+  .tile-link:focus-visible,
+  .tile-button:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .tile-image-wrapper img,
+  .tile-image-wrapper :global(img),
+  .tile-image-wrapper .performance-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile-image-wrapper img {
+      transition: none;
+    }
+  }
+
+  .tile-link:hover img,
+  .tile-button:hover img {
+    transform: scale(1.05);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile-link:hover img,
+    .tile-button:hover img {
+      transform: none;
+    }
+  }
+
+  .image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-charcoal) 0%, var(--color-black) 100%);
+    color: var(--color-ivory);
+    font-size: 3rem;
+    font-weight: 400;
+    font-family: var(--font-serif);
+  }
+
+  .external-link-icon {
+    position: absolute;
+    top: var(--spacing-xs);
+    right: var(--spacing-xs);
+    background-color: rgba(26, 26, 26, 0.8);
+    color: var(--color-ivory);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .external-link-icon {
+      transition: none;
+    }
+  }
+
+  .tile-link:hover .external-link-icon {
+    opacity: 1;
+  }
+
+  .tile-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .tile-role {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-black);
+    font-family: var(--font-sans);
+  }
+
+  .tile-work {
+    font-size: 1.125rem;
+    font-weight: 400;
+    color: var(--color-black);
+    font-family: var(--font-serif);
+    font-style: italic;
+  }
+
+  .tile-meta {
+    font-size: 0.9375rem;
+    color: var(--color-charcoal);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-family: var(--font-sans);
+  }
+
+  .tile-separator {
+    opacity: 0.5;
+  }
+
+  .tile-year {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .no-results {
+    text-align: center;
+    color: var(--color-charcoal);
+    font-style: italic;
+    padding: var(--spacing-2xl);
+    max-width: none;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .performances-grid {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .filter-toggle {
+      display: flex;
+    }
+
+    .filters {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: var(--color-ivory);
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      padding: var(--spacing-md);
+      margin-bottom: 0;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      z-index: 100;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .filters.filter-open {
+      max-height: 500px;
+      opacity: 1;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .filter-btn {
+      font-size: 0.9375rem;
+      padding: var(--spacing-sm) var(--spacing-md);
+      width: 100%;
+      text-align: left;
+      border-bottom: 1px solid rgba(26, 26, 26, 0.1);
+      border-radius: 0;
+      margin-bottom: 0;
+    }
+
+    .filter-btn:last-child {
+      border-bottom: none;
+    }
+
+    .filter-btn.active {
+      background-color: rgba(139, 111, 71, 0.1);
+      border-bottom-color: var(--color-accent);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .performances-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Filter toggle functionality for mobile
+   */
+  (function() {
+    const filterToggle = document.getElementById('filter-toggle');
+    const filterToggleText = filterToggle?.querySelector('.filter-toggle-text');
+    const filters = document.getElementById('filters');
+    
+    // Function to update button text based on selected filter
+    function updateFilterButtonText(category) {
+      if (!filterToggleText) return;
+      
+      if (category === 'all') {
+        filterToggleText.textContent = 'All';
+      } else {
+        // Capitalize first letter
+        filterToggleText.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+      }
+    }
+    
+    if (filterToggle && filters) {
+      filterToggle.addEventListener('click', () => {
+        const isExpanded = filterToggle.getAttribute('aria-expanded') === 'true';
+        filterToggle.setAttribute('aria-expanded', !isExpanded);
+        filters.classList.toggle('filter-open');
+      });
+      
+      // Close filter menu when clicking a filter button (mobile)
+      const filterButtons = filters.querySelectorAll('.filter-btn');
+      filterButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (window.innerWidth <= 768) {
+            filterToggle.setAttribute('aria-expanded', 'false');
+            filters.classList.remove('filter-open');
+          }
+          // Update button text when filter is selected
+          const selectedCategory = btn.getAttribute('data-filter') || 'all';
+          updateFilterButtonText(selectedCategory);
+        });
+      });
+      
+      // Expose update function for use by filter script
+      window.updateFilterButtonText = updateFilterButtonText;
+    }
+  })();
+
+  /**
+   * Simple filter functionality
+   * Uses URL hash and CSS to show/hide tiles
+   */
+  (function() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const tiles = document.querySelectorAll('.performance-tile');
+    const noResults = document.querySelector('.no-results');
+    
+    function filterByCategory(category) {
+      let visibleCount = 0;
+      
+      tiles.forEach((tile) => {
+        const tileCategory = tile.getAttribute('data-category');
+        if (category === 'all' || tileCategory === category) {
+          tile.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          tile.classList.add('hidden');
+        }
+      });
+
+      // Show/hide no results message
+      if (noResults) {
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+
+      // Update active state
+      filterButtons.forEach((btn) => {
+        const btnFilter = btn.getAttribute('data-filter');
+        if (btnFilter === category) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+        } else {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-selected', 'false');
+        }
+      });
+      
+      // Update filter button text on mobile
+      if (window.updateFilterButtonText) {
+        window.updateFilterButtonText(category);
+      }
+    }
+
+    // Handle hash changes
+    function handleHashChange() {
+      const hash = window.location.hash.slice(1) || 'all';
+      filterByCategory(hash);
+    }
+
+    // Initial filter based on hash
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Handle filter button clicks
+    filterButtons.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const category = btn.getAttribute('data-filter') || 'all';
+        window.location.hash = category === 'all' ? '' : category;
+        filterByCategory(category);
+      });
+    });
+  })();
+</script>
+
