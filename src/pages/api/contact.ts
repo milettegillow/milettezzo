@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
     const sanitizedMessage = message.trim().slice(0, 5000);
 
     // Get Resend API key from environment variable
-    const resendApiKey = import.meta.env.RESEND_API_KEY;
+    const resendApiKey = process.env.RESEND_API_KEY;
 
     if (!resendApiKey) {
       console.error('RESEND_API_KEY is not set');
