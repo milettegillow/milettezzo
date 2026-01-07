@@ -24,7 +24,7 @@ const { pageTitle, subtitle, intro, socialLinks, polaroidImages } = contactConte
     <div class="contact-layout">
       <!-- Contact Form -->
       <div class="form-section">
-        <form class="contact-form" id="contact-form" method="post">
+        <form class="contact-form" id="contact-form" method="post" action="/api/contact">
           <div id="form-message" class="form-message" role="alert" aria-live="polite"></div>
           
           <div class="form-group">
@@ -423,7 +423,8 @@ const { pageTitle, subtitle, intro, socialLinks, polaroidImages } = contactConte
 
       try {
         const formData = new FormData(form);
-        const response = await fetch('/api/contact', {
+        const apiUrl = new URL('/api/contact', window.location.origin);
+        const response = await fetch(apiUrl.toString(), {
           method: 'POST',
           body: formData,
         });
