@@ -391,3 +391,42 @@ const { pageTitle, subtitle, intro, socialLinks, polaroidImages } = contactConte
   }
 </style>
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('contact-form') as HTMLFormElement;
+    const messageDiv = document.getElementById('form-message') as HTMLElement;
+
+    if (!form || !messageDiv) return;
+
+    const showMessage = (text: string, type: 'success' | 'error') => {
+      messageDiv.textContent = text;
+      messageDiv.className = `form-message show ${type}`;
+      messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      try {
+        const formData = new FormData(form);
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          showMessage('Thank you! Your message has been sent. I\'ll get back to you soon.', 'success');
+          form.reset();
+        } else {
+          showMessage(data.error || 'Something went wrong. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Form submission error:', error);
+        showMessage('Network error. Please check your connection and try again.', 'error');
+      }
+    });
+  });
+</script>
+
