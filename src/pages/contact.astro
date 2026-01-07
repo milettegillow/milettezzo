@@ -24,7 +24,7 @@ const { pageTitle, subtitle, intro, socialLinks, polaroidImages } = contactConte
     <div class="contact-layout">
       <!-- Contact Form -->
       <div class="form-section">
-        <form class="contact-form" id="contact-form" method="post" action="/api/contact">
+          <form class="contact-form" id="contact-form" method="post" action="#" novalidate>
           <div id="form-message" class="form-message" role="alert" aria-live="polite"></div>
           
           <div class="form-group">
@@ -120,6 +120,62 @@ const { pageTitle, subtitle, intro, socialLinks, polaroidImages } = contactConte
       <PolaroidCarousel images={polaroidImages} />
     </div>
   </div>
+
+  <script is:inline>
+  const form = document.getElementById('contact-form');
+  const messageEl = document.getElementById('form-message');
+  const submitBtn = document.getElementById('submit-btn');
+  const btnText = submitBtn?.querySelector('.btn-text');
+  const btnLoading = submitBtn?.querySelector('.btn-loading');
+
+  function showMessage(text, type) {
+    if (!messageEl) return;
+    messageEl.textContent = text;
+    messageEl.classList.remove('success', 'error');
+    messageEl.classList.add('show', type); // type: "success" | "error"
+  }
+
+  function setLoading(isLoading) {
+    if (!submitBtn) return;
+    submitBtn.disabled = isLoading;
+    if (btnText) btnText.style.display = isLoading ? 'none' : 'inline';
+    if (btnLoading) btnLoading.style.display = isLoading ? 'inline' : 'none';
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!form) return;
+
+    // optional: clear any prior message styling
+    if (messageEl) messageEl.classList.remove('show', 'success', 'error');
+
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' },
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        showMessage(data?.error || `Something went wrong (${res.status}).`, 'error');
+        return;
+      }
+
+      showMessage('Sent — thank you!', 'success');
+      form.reset();
+    } catch (err) {
+      showMessage('Network error — please try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  });
+</script>
+
 </BaseLayout>
 
 <style>
