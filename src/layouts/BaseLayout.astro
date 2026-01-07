@@ -1,7 +1,17 @@
 ---
 import '../styles/global.css';
 
-const { title = "Milette Gillow | Mezzo-Soprano" } = Astro.props;
+const {
+  title = "Milette Gillow | Mezzo-Soprano",
+  description = "Milette Gillow is a classical mezzo-soprano. Explore performances, digital content, biography, and contact information. Milettezzo - Milette Gillow, mezzo-soprano.",
+  keywords = "milettezzo, milette gillow, mezzo-soprano, opera, classical music, singer, performer",
+  image = "/images/portrait.jpg",
+  type = "website"
+} = Astro.props;
+
+const siteUrl = Astro.site || "https://milettezzo.com";
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
+const ogImage = new URL(image, siteUrl).href;
 ---
 
 <!doctype html>
@@ -10,6 +20,27 @@ const { title = "Milette Gillow | Mezzo-Soprano" } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
+    <meta name="author" content="Milette Gillow" />
+    <link rel="canonical" href={canonicalUrl} />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:site_name" content="Milettezzo" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/images/milettezzo-favicon.png" />
