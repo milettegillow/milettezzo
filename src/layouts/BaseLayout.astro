@@ -11,6 +11,10 @@ const { title = "Milette Gillow | Mezzo-Soprano" } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/images/milettezzo-favicon.png" />
+    <link rel="apple-touch-icon" href="/images/milettezzo-favicon.png" />
+    
     <!-- Google Fonts - Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -31,12 +35,13 @@ const { title = "Milette Gillow | Mezzo-Soprano" } = Astro.props;
           <span class="hamburger-line"></span>
         </button>
         <div class="nav-links" id="nav-links">
-          <a href="/">Home</a>
-          <a href="/biography">Biography</a>
+        <a href="/">Home</a>
+        <a href="/biography">Biography</a>
           <a href="/performances">Performances</a>
-          <a href="/digital">Digital</a>
-          <a href="/contact">Contact</a>
+        <a href="/digital">Digital</a>
+        <a href="/contact">Contact</a>
         </div>
+        <img src="/images/signature-taupe.svg" alt="Milette Gillow signature" class="header-signature" />
       </nav>
     </header>
 
@@ -62,7 +67,7 @@ const { title = "Milette Gillow | Mezzo-Soprano" } = Astro.props;
         // Close menu when clicking a link (mobile/tablet)
         navLinks.querySelectorAll('a').forEach(link => {
           link.addEventListener('click', () => {
-            if (window.innerWidth <= 968) {
+            if (window.innerWidth <= 1024) {
               menuToggle.setAttribute('aria-expanded', 'false');
               navLinks.classList.remove('nav-open');
               menuToggle.classList.remove('menu-open');

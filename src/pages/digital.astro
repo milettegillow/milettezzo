@@ -169,6 +169,8 @@ if (heroImagePath) {
     margin-left: auto;
     margin-right: auto;
     letter-spacing: 0.05em;
+    position: relative;
+    z-index: 2;
   }
 
   /* Hero Banner */
@@ -431,8 +433,8 @@ if (heroImagePath) {
     max-width: none;
   }
 
-  /* Responsive */
-  @media (max-width: 968px) {
+  /* Responsive - Tablets (768px to 1024px) - show full image with gradients */
+  @media (min-width: 768px) and (max-width: 1024px) {
     .digital-page {
       padding: var(--spacing-xl) var(--spacing-md);
       margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-md)) 0;
@@ -453,7 +455,59 @@ if (heroImagePath) {
     .hero-gradient-top {
       width: 100vw;
       max-width: 100vw;
-      height: 80px;
+      height: 50vh;
+      background: linear-gradient(to bottom, rgba(15, 15, 15, 1) 0%, rgba(15, 15, 15, 0.8) 15%, rgba(15, 15, 15, 0) 30%, rgba(15, 15, 15, 0) 70%, rgba(15, 15, 15, 0.8) 85%, rgba(15, 15, 15, 1) 100%);
+    }
+
+    .hero-gradient-bottom {
+      width: 100vw;
+      max-width: 100vw;
+      height: 50vh;
+    }
+
+    .hero-banner {
+      padding: var(--spacing-lg) var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .hero-banner-title {
+      font-size: 1.5rem;
+    }
+
+    .hero-banner-description {
+      font-size: 1rem;
+    }
+
+    .btn {
+      padding: var(--spacing-xs) var(--spacing-md);
+      font-size: 0.9375rem;
+    }
+  }
+
+  /* Responsive - Mobile (below 768px) - overlap effect */
+  @media (max-width: 767px) {
+    .digital-page {
+      padding: var(--spacing-xl) var(--spacing-md);
+      margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-md)) 0;
+      overflow-x: hidden;
+    }
+
+    .digital-page::before {
+      left: 0;
+      right: 0;
+      width: 100vw;
+      max-width: 100vw;
+      height: 200px;
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+    }
+
+    .hero-gradient-top {
+      width: 100vw;
+      max-width: 100vw;
+      height: 200px;
+      background: linear-gradient(to bottom, rgba(15, 15, 15, 0) 0%, rgba(15, 15, 15, 0.3) 40%, rgba(15, 15, 15, 0.7) 70%, rgba(15, 15, 15, 1) 100%);
     }
 
     .hero-gradient-bottom {
@@ -468,7 +522,7 @@ if (heroImagePath) {
     }
 
     .digital-content h1 {
-      background-color: #000000;
+      background-color: transparent;
       padding: var(--spacing-md) var(--spacing-md);
       margin-left: calc(-1 * var(--spacing-md));
       margin-right: calc(-1 * var(--spacing-md));
@@ -476,18 +530,7 @@ if (heroImagePath) {
       width: 100vw;
       max-width: 100vw;
       position: relative;
-      z-index: 3;
-    }
-
-    .digital-content h1::before {
-      content: '';
-      position: absolute;
-      top: calc(-1 * var(--spacing-xl) - var(--spacing-md));
-      left: calc(-1 * var(--spacing-md));
-      right: calc(-1 * var(--spacing-md));
-      height: calc(var(--spacing-xl) + var(--spacing-md));
-      background-color: #000000;
-      z-index: -1;
+      z-index: 2;
     }
 
     .hero-banner {
